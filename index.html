@@ -29,22 +29,6 @@
             box-sizing: border-box;
         }
 
-        /* LINE 瀏覽器提示 */
-        #line-browser-alert {
-            display: none; /* 預設隱藏 */
-            background-color: #ff9800;
-            color: #fff;
-            padding: 10px;
-            width: 100%;
-            box-sizing: border-box;
-            text-align: center;
-            font-size: 0.9em;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 9999;
-        }
-
         /* 頁面容器 */
         #login-page, #customer-home-page, #admin-home-page { 
             width: 100%; 
@@ -364,6 +348,18 @@
         .coupon-confirm-content p { margin: 8px 0; }
         .coupon-confirm-img { width: 100%; max-height: 200px; object-fit: contain; margin-bottom: 15px; border-radius: 8px; border: 1px solid #eee; }
 
+        /* 員工核銷輸入框 */
+        #staff-code-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            text-align: center;
+            border: 2px solid #cb9c65;
+            border-radius: 8px;
+            margin: 20px 0;
+            background-color: #fcfcfc;
+        }
+
         .warning-text { color: #c0392b; font-weight: bold; margin: 15px 0; }
 
         @media (max-width: 480px) {
@@ -381,9 +377,6 @@
     </style>
 </head>
 <body>
-    <!-- 提示使用者用外部瀏覽器開啟 (for LINE) -->
-    <div id="line-browser-alert">請點擊右上角選單，選擇「使用預設瀏覽器開啟」以獲得最佳體驗</div>
-
     <!-- 定義 SVG 漸層 (隱藏) -->
     <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -542,7 +535,7 @@
             </div>
         </div>
         
-        <!-- 我的優惠卷 Modal -->
+        <!-- 新增：我的優惠卷 Modal -->
         <div id="my-coupons-modal" class="modal-overlay hidden">
             <div class="modal-content">
                 <span class="close-button" id="close-coupons-modal-btn">&times;</span>
@@ -571,13 +564,13 @@
             </div>
         </div>
 
-        <!-- 核銷碼顯示視窗 -->
-        <div id="coupon-code-display-modal" class="modal-overlay hidden">
+        <!-- 店員核銷輸入視窗 -->
+        <div id="staff-verify-modal" class="modal-overlay hidden">
             <div class="modal-content">
-                <span class="close-button" onclick="closeModal(document.getElementById('coupon-code-display-modal'))">&times;</span>
-                <h2 class="modal-title" style="margin-top:20px;">請出示此畫面給店員</h2>
-                <p class="verification-code">287719</p>
-                <p class="timer-text">核銷成功！請點擊右上角關閉。</p>
+                <span class="close-button" onclick="closeModal(document.getElementById('staff-verify-modal'))">&times;</span>
+                <h2 class="modal-title" style="margin-top:20px;">請交由店員輸入核銷碼</h2>
+                <input type="number" id="staff-code-input" class="form-input" placeholder="請輸入6位核銷碼">
+                <button id="verify-staff-code-btn" class="btn btn-primary" style="margin-top:15px;">確認核銷</button>
             </div>
         </div>
 
@@ -643,9 +636,13 @@
             const savedPhone = localStorage.getItem('cupicho_user_phone');
             let pendingCouponUseId = null; // 暫存要使用的優惠卷 ID
 
-            // 偵測 LINE 瀏覽器
+            // 1. LINE 瀏覽器強制跳轉邏輯
             if (navigator.userAgent.indexOf("Line") > -1) {
-                document.getElementById('line-browser-alert').style.display = 'block';
+                // 如果是 LINE 瀏覽器，檢查是否已經有 openExternalBrowser 參數
+                if (location.href.indexOf("openExternalBrowser=1") === -1) {
+                    var newUrl = location.href + (location.href.indexOf('?') > -1 ? '&' : '?') + 'openExternalBrowser=1';
+                    window.location.href = newUrl;
+                }
             }
 
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwaKvazBUNh538Xud67UvheZqKEwR8R1Xuo_wLcpyl39oQ9pGAuk8_qZWTvrhCjV88/exec";
@@ -699,7 +696,7 @@
             const myCouponsModal = document.getElementById('my-coupons-modal');
             const couponsCloseBtn = document.getElementById('close-coupons-modal-btn');
             const couponConfirmModal = document.getElementById('coupon-confirm-modal');
-            const couponCodeDisplayModal = document.getElementById('coupon-code-display-modal');
+            const staffVerifyModal = document.getElementById('staff-verify-modal'); // 改為使用 staff verify modal
 
             // Level Elements
             const levelCard = document.getElementById('member-status-card');
@@ -736,6 +733,7 @@
             // Coupon Action Buttons
             const cancelUseCouponBtn = document.getElementById('cancel-use-coupon-btn');
             const confirmUseCouponBtn = document.getElementById('confirm-use-coupon-btn');
+            const verifyStaffCodeBtn = document.getElementById('verify-staff-code-btn');
             
             // QR
             const qrReaderContainer = document.getElementById('qr-reader-container');
@@ -796,19 +794,37 @@
                  return coupons;
              }
 
-             // 定義開啟優惠卷 Modal 的函數 (更新版：展開顯示 + 使用狀態)
+             // 3. 優惠卷數量計算 (扣除已使用)
+             function getUnusedCouponCount(levelIdx) {
+                 const coupons = getCouponsForLevel(levelIdx);
+                 let count = 0;
+                 coupons.forEach(group => {
+                     for(let i=0; i<group.qty; i++) {
+                         const uniqueId = `${group.baseId}_${i}`;
+                         if (localStorage.getItem(`used_coupon_${uniqueId}`) !== 'true') {
+                             count++;
+                         }
+                     }
+                 });
+                 return count;
+             }
+
+             // 定義開啟優惠卷 Modal 的函數
              window.openCouponsModal = function() {
                  if(!currentCustomerPhone) return;
                  const coupons = getCouponsForLevel(currentLevelIndex);
                  const listContainer = document.getElementById('coupons-list-container');
                  listContainer.innerHTML = '';
                  
+                 let hasAnyCoupon = false;
+
                  if(coupons.length === 0) {
                      listContainer.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">目前沒有可用的優惠卷</p>';
                  } else {
                      coupons.forEach(couponGroup => {
                          // 根據數量重複渲染
                          for(let i=0; i<couponGroup.qty; i++) {
+                             hasAnyCoupon = true;
                              const uniqueId = `${couponGroup.baseId}_${i}`;
                              // 檢查是否已使用
                              const isUsed = localStorage.getItem(`used_coupon_${uniqueId}`) === 'true';
@@ -837,6 +853,10 @@
                          }
                      });
                      
+                     if (!hasAnyCoupon) {
+                        listContainer.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">目前沒有可用的優惠卷</p>';
+                     }
+
                      // 綁定點擊事件
                      listContainer.querySelectorAll('.btn-use-coupon:not(:disabled)').forEach(btn => {
                          btn.addEventListener('click', (e) => {
@@ -857,19 +877,35 @@
                  openModal(myCouponsModal);
              };
 
-             // 優惠卷確認使用按鈕邏輯
+             // 2. 優惠卷確認使用按鈕邏輯 (改為跳轉到店員輸入核銷碼)
              if (confirmUseCouponBtn) {
                  confirmUseCouponBtn.addEventListener('click', () => {
-                     if (pendingCouponUseId) {
-                         // 設定為已使用
-                         localStorage.setItem(`used_coupon_${pendingCouponUseId}`, 'true');
-                         
-                         // 關閉確認，打開核銷碼
-                         closeModal(couponConfirmModal);
-                         openModal(couponCodeDisplayModal);
-                         
-                         // 重置
-                         pendingCouponUseId = null;
+                     // 關閉確認視窗，打開店員核銷視窗
+                     closeModal(couponConfirmModal);
+                     document.getElementById('staff-code-input').value = ''; // 清空輸入
+                     openModal(staffVerifyModal);
+                 });
+             }
+             
+             // 2. 店員核銷碼驗證邏輯
+             if (verifyStaffCodeBtn) {
+                 verifyStaffCodeBtn.addEventListener('click', () => {
+                     const inputCode = document.getElementById('staff-code-input').value;
+                     if (inputCode === '287719') {
+                         if (pendingCouponUseId) {
+                             // 設定為已使用
+                             localStorage.setItem(`used_coupon_${pendingCouponUseId}`, 'true');
+                             
+                             alert('核銷成功！');
+                             closeModal(staffVerifyModal);
+                             pendingCouponUseId = null;
+                             
+                             // 重新開啟優惠卷列表並更新狀態 (含數量更新)
+                             updateMemberLevelUI(currentAnnualPoints); // 更新計數
+                             openCouponsModal(); 
+                         }
+                     } else {
+                         alert('核銷碼錯誤，請重新輸入');
                      }
                  });
              }
@@ -914,12 +950,10 @@
                      pointsNeeded = 0; progressPercent = 100;
                  }
 
-                 // 更新優惠卷數量顯示 (計算總張數)
-                 const coupons = getCouponsForLevel(currentLevelIndex);
-                 let totalCoupons = 0;
-                 coupons.forEach(c => totalCoupons += c.qty);
+                 // 3. 更新優惠卷數量顯示 (使用新邏輯：計算未使用)
+                 const totalUnusedCoupons = getUnusedCouponCount(currentLevelIndex);
                  const couponCountEl = document.getElementById('modal-coupon-count');
-                 if(couponCountEl) couponCountEl.textContent = totalCoupons;
+                 if(couponCountEl) couponCountEl.textContent = totalUnusedCoupons;
 
                  levelCard.className = `member-status-card ${levelClass}`;
                  
@@ -980,6 +1014,12 @@
                  document.getElementById('modal-progress-fill').style.backgroundColor = levelColor; 
                  document.getElementById('modal-next-info').textContent = nextInfoText;
                  document.getElementById('modal-annual-value').textContent = p;
+                 
+                 // 在打開詳情頁時也更新一次數量，確保準確
+                 const totalUnusedCoupons = getUnusedCouponCount(currentLevelIndex);
+                 const couponCountEl = document.getElementById('modal-coupon-count');
+                 if(couponCountEl) couponCountEl.textContent = totalUnusedCoupons;
+
                  openModal(memberDetailModal);
              };
 
