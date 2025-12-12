@@ -1,9 +1,14 @@
+<!-- 
+    CupiCho Membership Web App
+    Current Version: v25.04.06
+    Last Updated: 2025/01/06 (Fix ReferenceError)
+-->
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CupiCho 集點|寄杯</title>
+    <title>CupiCho DP會員專區</title>
     <link rel="icon" href="favicon.png" type="image/png" sizes="32x32"> 
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
@@ -47,6 +52,7 @@
             max-width: 90%; 
             margin: 20px auto; 
             box-sizing: border-box; 
+            position: relative;
         }
 
         .logo { 
@@ -84,7 +90,7 @@
             box-sizing: border-box; max-height: 90vh; overflow-y: auto; 
         }
         .modal-title { color: #4a2c2a; margin-top: 0; }
-        .close-button { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #aaa; cursor: pointer; line-height: 1; z-index: 2001; } /* 修正 z-index */
+        .close-button { position: absolute; top: 15px; right: 20px; font-size: 28px; color: #aaa; cursor: pointer; line-height: 1; z-index: 2001; }
         
         .form-grid { display: grid; gap: 15px; text-align: left; }
         .form-group label { display: block; margin-bottom: 5px; font-size: 0.9em; color: #666; }
@@ -138,38 +144,20 @@
         .progress-tooltip.show { opacity: 1; visibility: visible; }
 
         /* ★★★ 金屬質感背景定義 (卡片背景 & 進度條) ★★★ */
-        
-        /* Lv.0 可可白賞 (絲滑牛奶) */
-        .lv0-style {
-            background: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 50%, #FFFFFF 100%);
-            color: #4a2c2a; 
-        }
+        .lv0-style { background: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 50%, #FFFFFF 100%); color: #4a2c2a; }
         .lv0-style .progress-fill { background-color: #4a2c2a; }
         
-        /* Lv.1 可可銅賞 (金屬光澤) */
-        .lv1-style {
-            background: linear-gradient(135deg, #CD7F32 0%, #E8A87C 50%, #CD7F32 100%);
-            color: #FFFFFF;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
+        .lv1-style { background: linear-gradient(135deg, #CD7F32 0%, #E8A87C 50%, #CD7F32 100%); color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
         .lv1-style .progress-track { background-color: rgba(255,255,255,0.3); }
         .lv1-style .progress-fill { background-color: #FFFFFF; }
 
-        /* Lv.2 可可銀賞 (反光銀器) */
-        .lv2-style {
-            background: linear-gradient(135deg, #E0E0E0 0%, #F5F5F5 40%, #C0C0C0 100%);
-            color: #333333; 
-        }
+        .lv2-style { background: linear-gradient(135deg, #E0E0E0 0%, #F5F5F5 40%, #C0C0C0 100%); color: #333333; }
         .lv2-style .progress-fill { background-color: #555555; }
 
-        /* Lv.3 可可金賞 (閃耀黃金) */
-        .lv3-style {
-            background: linear-gradient(135deg, #FFD700 0%, #FFFACD 40%, #DAA520 100%);
-            color: #4a2c2a; 
-        }
+        .lv3-style { background: linear-gradient(135deg, #FFD700 0%, #FFFACD 40%, #DAA520 100%); color: #4a2c2a; }
         .lv3-style .progress-fill { background-color: #4a2c2a; }
 
-        /* ★★★ 文字顏色系統 (用於下一等級文字) ★★★ */
+        /* ★★★ 文字顏色系統 ★★★ */
         .text-lv0 { color: #9E9E9E; } 
         .text-lv1 { color: #CD7F32; } 
         .text-lv2 { color: #7F7F7F; } 
@@ -209,21 +197,9 @@
         .history-item-name { font-size: 1.1em; font-weight: bold; color: #4a2c2a; display: flex; align-items: center; gap: 5px; }
         .history-remaining { font-size: 0.85em; color: #27ae60; margin-top: 4px; font-weight: 500; }
         .history-action-group { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; min-width: 80px; }
-        
-        /* 寄杯核銷按鈕樣式 - 金色背景 / 黑色文字 */
-        .btn-redeem { 
-            padding: 8px 15px; 
-            font-size: 14px; 
-            background-color: #cb9c65; 
-            color: #000;  /* 黑色 */
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            flex-shrink: 0; 
-        }
+        .btn-redeem { padding: 8px 15px; font-size: 14px; background-color: #cb9c65; color: #000; border: none; border-radius: 5px; cursor: pointer; flex-shrink: 0; }
         .btn-redeem-card { background-color: #cb9c65; color: #000; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9em; transition: background 0.2s; }
         .btn-redeem-card:hover { background-color: #b98b54; }
-        
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f5f5f5; }
         .history-info { display: flex; flex-direction: column; }
         .history-detail { font-size: 1em; color: #333; }
@@ -239,15 +215,8 @@
         .registration-notice li { margin-bottom: 5px; }
         #loading-modal { z-index: 3000; }
         
-        /* 會員詳情 Modal 樣式 - 移除背景色，保持白色 */
-        .detail-modal-header { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            margin-bottom: 20px; 
-            background-color: transparent; /* 確保透明 */
-        }
-        
+        /* 會員詳情 Modal 樣式 */
+        .detail-modal-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; background-color: transparent; }
         .detail-level-name { font-size: 1.5em; font-weight: bold; margin-bottom: 10px; }
         .detail-progress-wrapper { width: 100%; margin-bottom: 10px; }
         .detail-progress-track { height: 10px; background-color: #f0f0f0; border-radius: 10px; overflow: hidden; width: 100%; }
@@ -255,53 +224,12 @@
         .detail-next-info { font-size: 0.9em; color: #666; text-align: right; width: 100%; }
         
         /* 左右分割的累計與優惠卷區塊 */
-        .stats-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            margin: 20px 0; 
-        }
-        
-        .stats-block { 
-            background-color: #f9f9f9; 
-            border-radius: 10px; 
-            padding: 15px; 
-            text-align: center; 
-            border: 1px solid #eee; 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100px;
-        }
-
-        /* 優惠卷區塊的可點擊樣式 */
-        .coupons-block {
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
-            background-color: #fff9f0; /* 微微的金色底 */
-            border-color: #fae0c5;
-        }
-        .coupons-block:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-            background-color: #fff5e6;
-        }
-        .coupons-block:active {
-            transform: translateY(0);
-        }
-        /* 加一個小箭頭提示可點擊 */
-        .coupons-block::after {
-            content: '›';
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-55%);
-            font-size: 24px;
-            color: #dcbfa5;
-            font-weight: bold;
-        }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .stats-block { background-color: #f9f9f9; border-radius: 10px; padding: 15px; text-align: center; border: 1px solid #eee; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100px; }
+        .coupons-block { cursor: pointer; transition: all 0.2s; position: relative; background-color: #fff9f0; border-color: #fae0c5; }
+        .coupons-block:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.05); background-color: #fff5e6; }
+        .coupons-block:active { transform: translateY(0); }
+        .coupons-block::after { content: '›'; position: absolute; right: 10px; top: 50%; transform: translateY(-55%); font-size: 24px; color: #dcbfa5; font-weight: bold; }
 
         .annual-label { font-size: 0.9em; color: #888; }
         .annual-value { font-size: 2em; font-weight: bold; color: #333; margin: 5px 0; }
@@ -346,21 +274,23 @@
         /* 優惠卷免責聲明樣式 */
         .coupon-confirm-content { text-align: left; margin-bottom: 20px; font-size: 0.9em; line-height: 1.5; color: #555; }
         .coupon-confirm-content p { margin: 8px 0; }
+        .coupon-confirm-content ol { padding-left: 20px; margin: 0; }
+        .coupon-confirm-content li { margin-bottom: 5px; }
         .coupon-confirm-img { width: 100%; max-height: 200px; object-fit: contain; margin-bottom: 15px; border-radius: 8px; border: 1px solid #eee; }
 
         /* 員工核銷輸入框 */
-        #staff-code-input {
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2em;
-            text-align: center;
-            border: 2px solid #cb9c65;
-            border-radius: 8px;
-            margin: 20px 0;
-            background-color: #fcfcfc;
-        }
-
+        #staff-code-input { width: 100%; padding: 15px; font-size: 1.2em; text-align: center; border: 2px solid #cb9c65; border-radius: 8px; margin: 20px 0; background-color: #fcfcfc; }
         .warning-text { color: #c0392b; font-weight: bold; margin: 15px 0; }
+
+        /* 版本號碼樣式 */
+        .version-info {
+            margin-top: 30px;
+            margin-bottom: 10px;
+            font-size: 0.75em;
+            color: #ccc;
+            text-align: center;
+            width: 100%;
+        }
 
         @media (max-width: 480px) {
             body, html { background-color: #f5f2eb; }
@@ -405,7 +335,7 @@
 
     <div id="root-container">
         <div id="login-page">
-            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho集點|寄杯</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div></div>
+            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.06</div></div>
         </div>
         <div id="customer-home-page" class="hidden">
             <div class="customer-container">
@@ -449,6 +379,7 @@
                     <p class="info-main-data"><span id="voucher-balance">0</span><span class="small-text">杯</span></p>
                     <div class="action-buttons-group"><button class="btn btn-action" id="voucher-history-btn">寄杯查詢</button></div>
                 </div>
+                <div class="version-info">v25.04.06</div>
             </div>
         </div>
         
@@ -547,16 +478,13 @@
             </div>
         </div>
 
-        <!-- 優惠卷確認使用視窗 -->
+        <!-- 優惠卷確認使用視窗 (內容動態生成) -->
         <div id="coupon-confirm-modal" class="modal-overlay hidden">
             <div class="modal-content">
                 <h2 class="modal-title" style="margin-bottom:15px;">確認使用</h2>
                 <img id="confirm-coupon-img" src="" class="coupon-confirm-img">
-                <div class="coupon-confirm-content">
-                    <p>· 排除88折(不含)以下折扣、買一送一、心動價、優惠商品及相關集團優惠。</p>
-                    <p>· 活動贈品圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。</p>
-                    <p>· 其他注意事項及未盡事宜，請詳使用說明。</p>
-                    <p style="color:#c0392b; font-weight:bold; font-size:1.15em;">· 處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。</p>
+                <div id="confirm-coupon-terms" class="coupon-confirm-content">
+                    <!-- 動態條文會插入在這裡 -->
                 </div>
                 <div class="confirm-buttons">
                     <button id="cancel-use-coupon-btn" class="btn btn-secondary">取消</button>
@@ -633,11 +561,77 @@
         window.closeModal = function(modal) { if(modal) modal.classList.add('hidden'); };
 
         document.addEventListener('DOMContentLoaded', function() {
-            // FIX: 在此宣告 savedPhone 避免程式崩潰
+            // FIX: 將所有元素選取移至最上方，避免 ReferenceError
+            const loginButton = document.getElementById('login-button');
+            const registerButton = document.getElementById('register-button');
+            const confirmRegButton = document.getElementById('confirm-reg-button');
+            const customerLogoutButton = document.getElementById('customer-logout-button');
+            const adminLogoutButton = document.getElementById('admin-logout-button');
+            const lookupButton = document.getElementById('lookup-button');
+            const adminAddVoucherBtn = document.getElementById('admin-add-voucher-btn');
+            const confirmAddVoucherBtn = document.getElementById('confirm-add-voucher-btn');
+            const voucherHistoryBtn = document.getElementById('voucher-history-btn');
+            const adminVoucherHistoryBtn = document.getElementById('admin-voucher-history-btn');
+            const adminPointsHistoryBtn = document.getElementById('admin-points-history-btn'); 
+            const adminRedeemVoucherBtn = document.getElementById('admin-redeem-voucher-btn');
+            const verifyRedeemCodeBtn = document.getElementById('verify-redeem-code-btn');
+            const cancelRedeemBtn = document.getElementById('cancel-redeem-btn');
+            const finalConfirmRedeemBtn = document.getElementById('final-confirm-redeem-btn');
+            const cancelAddBtn = document.getElementById('cancel-add-btn'); 
+            const finalConfirmAddBtn = document.getElementById('final-confirm-add-btn'); 
+            const addPointsBtn = document.getElementById('add-points-btn');
+            const pointsHistoryBtn = document.getElementById('points-history-btn');
+            const redeemPointsBtn = document.getElementById('redeem-points-btn');
+            const cancelPointRedeemBtn = document.getElementById('cancel-point-redeem-btn'); 
+            const staffConfirmPointRedeemBtn = document.getElementById('staff-confirm-point-redeem-btn');
+            
+            // Coupon Action Buttons
+            const cancelUseCouponBtn = document.getElementById('cancel-use-coupon-btn');
+            const confirmUseCouponBtn = document.getElementById('confirm-use-coupon-btn');
+            const verifyStaffCodeBtn = document.getElementById('verify-staff-code-btn');
+            
+            // Modals
+            const allPages = document.querySelectorAll('#login-page, #customer-home-page, #admin-home-page');
+            const registerModal = document.getElementById('register-modal');
+            const loadingModal = document.getElementById('loading-modal');
+            const addVoucherModal = document.getElementById('add-voucher-modal');
+            const voucherHistoryModal = document.getElementById('voucher-history-modal');
+            const pointsHistoryModal = document.getElementById('points-history-modal');
+            const redeemPointsModal = document.getElementById('redeem-points-modal');
+            const pointRedeemConfirmModal = document.getElementById('point-redeem-confirm-modal'); 
+            const showCodeModal = document.getElementById('show-code-modal');
+            const adminVerifyCodeModal = document.getElementById('admin-verify-code-modal');
+            const adminConfirmRedeemModal = document.getElementById('admin-confirm-redeem-modal');
+            const adminConfirmAddModal = document.getElementById('admin-confirm-add-modal'); 
+            const memberDetailModal = document.getElementById('member-detail-modal'); 
+            const myCouponsModal = document.getElementById('my-coupons-modal');
+            const couponConfirmModal = document.getElementById('coupon-confirm-modal');
+            const staffVerifyModal = document.getElementById('staff-verify-modal');
+            
+            // Close Buttons
+            const detailCloseBtn = document.getElementById('close-detail-modal-btn'); 
+            const voucherCloseBtn = document.getElementById('close-voucher-modal-btn'); 
+            const couponsCloseBtn = document.getElementById('close-coupons-modal-btn');
+
+            // Level Elements
+            const levelCard = document.getElementById('member-status-card');
+            const levelTitle = document.getElementById('current-level-name');
+            const nextLevelTitle = document.getElementById('next-level-name');
+            const progressBar = document.getElementById('level-progress-bar');
+            const progressTooltip = document.getElementById('level-tooltip');
+            const progressContainer = document.getElementById('level-progress-container');
+            
+            // QR
+            const qrReaderContainer = document.getElementById('qr-reader-container');
+            const closeQrReaderBtn = document.getElementById('close-qr-reader');
+            let html5QrCodeScanner = null;
+
             const savedPhone = localStorage.getItem('cupicho_user_phone');
             let pendingCouponUseId = null; // 暫存要使用的優惠卷 ID
+            
+            // ★★ 版本控制邏輯 (僅用於顯示，不再重置資料) ★★
+            const APP_VERSION = 'v25.04.06'; // 更新版本號
 
-            // 1. LINE 瀏覽器強制跳轉邏輯
             if (navigator.userAgent.indexOf("Line") > -1) {
                 // 如果是 LINE 瀏覽器，檢查是否已經有 openExternalBrowser 參數
                 if (location.href.indexOf("openExternalBrowser=1") === -1) {
@@ -678,69 +672,6 @@
             let currentAnnualPoints = 0; 
             let currentLevelIndex = 0; // 0=White, 1=Bronze, 2=Silver, 3=Gold
 
-            // Elements
-            const allPages = document.querySelectorAll('#login-page, #customer-home-page, #admin-home-page');
-            const registerModal = document.getElementById('register-modal');
-            const loadingModal = document.getElementById('loading-modal');
-            const addVoucherModal = document.getElementById('add-voucher-modal');
-            const voucherHistoryModal = document.getElementById('voucher-history-modal');
-            const pointsHistoryModal = document.getElementById('points-history-modal');
-            const redeemPointsModal = document.getElementById('redeem-points-modal');
-            const pointRedeemConfirmModal = document.getElementById('point-redeem-confirm-modal'); 
-            const showCodeModal = document.getElementById('show-code-modal');
-            const adminVerifyCodeModal = document.getElementById('admin-verify-code-modal');
-            const adminConfirmRedeemModal = document.getElementById('admin-confirm-redeem-modal');
-            const adminConfirmAddModal = document.getElementById('admin-confirm-add-modal'); 
-            const memberDetailModal = document.getElementById('member-detail-modal'); 
-            const detailCloseBtn = document.getElementById('close-detail-modal-btn'); 
-            const voucherCloseBtn = document.getElementById('close-voucher-modal-btn'); 
-            const myCouponsModal = document.getElementById('my-coupons-modal');
-            const couponsCloseBtn = document.getElementById('close-coupons-modal-btn');
-            const couponConfirmModal = document.getElementById('coupon-confirm-modal');
-            const staffVerifyModal = document.getElementById('staff-verify-modal'); // 改為使用 staff verify modal
-
-            // Level Elements
-            const levelCard = document.getElementById('member-status-card');
-            const levelTitle = document.getElementById('current-level-name');
-            const nextLevelTitle = document.getElementById('next-level-name');
-            const progressBar = document.getElementById('level-progress-bar');
-            const progressTooltip = document.getElementById('level-tooltip');
-            const progressContainer = document.getElementById('level-progress-container');
-
-            // Buttons
-            const loginButton = document.getElementById('login-button');
-            const registerButton = document.getElementById('register-button');
-            const confirmRegButton = document.getElementById('confirm-reg-button');
-            const customerLogoutButton = document.getElementById('customer-logout-button');
-            const adminLogoutButton = document.getElementById('admin-logout-button');
-            const lookupButton = document.getElementById('lookup-button');
-            const adminAddVoucherBtn = document.getElementById('admin-add-voucher-btn');
-            const confirmAddVoucherBtn = document.getElementById('confirm-add-voucher-btn');
-            const voucherHistoryBtn = document.getElementById('voucher-history-btn');
-            const adminVoucherHistoryBtn = document.getElementById('admin-voucher-history-btn');
-            const adminPointsHistoryBtn = document.getElementById('admin-points-history-btn'); 
-            const adminRedeemVoucherBtn = document.getElementById('admin-redeem-voucher-btn');
-            const verifyRedeemCodeBtn = document.getElementById('verify-redeem-code-btn');
-            const cancelRedeemBtn = document.getElementById('cancel-redeem-btn');
-            const finalConfirmRedeemBtn = document.getElementById('final-confirm-redeem-btn');
-            const cancelAddBtn = document.getElementById('cancel-add-btn'); 
-            const finalConfirmAddBtn = document.getElementById('final-confirm-add-btn'); 
-            const addPointsBtn = document.getElementById('add-points-btn');
-            const pointsHistoryBtn = document.getElementById('points-history-btn');
-            const redeemPointsBtn = document.getElementById('redeem-points-btn');
-            const cancelPointRedeemBtn = document.getElementById('cancel-point-redeem-btn'); 
-            const staffConfirmPointRedeemBtn = document.getElementById('staff-confirm-point-redeem-btn'); 
-            
-            // Coupon Action Buttons
-            const cancelUseCouponBtn = document.getElementById('cancel-use-coupon-btn');
-            const confirmUseCouponBtn = document.getElementById('confirm-use-coupon-btn');
-            const verifyStaffCodeBtn = document.getElementById('verify-staff-code-btn');
-            
-            // QR
-            const qrReaderContainer = document.getElementById('qr-reader-container');
-            const closeQrReaderBtn = document.getElementById('close-qr-reader');
-            let html5QrCodeScanner = null;
-
             // Helper Functions
             function openModal(modal) { if (modal) { modal.classList.remove('hidden'); } }
             function closeModal(modal) { if (modal) { modal.classList.add('hidden'); } }
@@ -771,26 +702,55 @@
                  return starsHtml;
              }
 
+             // 定義各類票卷的條款 (Updated Terms 2025.01.05)
+             const couponTerms = {
+                 'americano': [
+                     '晉升禮之飲品兌換限精品美式，不限內用/外帶，冰/熱不拘。',
+                     '會員晉升禮兌換卷圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。',
+                     '其他注意事項及未盡事宜，請洽店內夥伴。',
+                     '處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。'
+                 ],
+                 'rebate': [
+                     '排除88折(不含)以下折扣、買一送一、心動價、優惠商品、百貨聯名信用卡提供之折扣及相關集團優惠。',
+                     '會員回饋優惠券圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。',
+                     '其他注意事項及未盡事宜，請洽店內夥伴。',
+                     '處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。'
+                 ],
+                 'bogo': [
+                     '不得再使用百貨聯名信用卡提供之折扣及相關集團優惠。',
+                     '不限內用/外帶，冰/熱不拘。',
+                     '會員飲品買一送一兌換卷圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。',
+                     '其他注意事項及未盡事宜，請洽店內夥伴。',
+                     '處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。'
+                 ],
+                 'gold': [
+                     '可可金賞會員好禮兌換卷圖片僅供參考，實際商品以門市庫存提供為準，主辦單位保留更換等值商品或調整活動內容之權利，詳情請洽門市人員。',
+                     '其他注意事項及未盡事宜，請洽店內夥伴。',
+                     '處於「已使用」狀態的卷類無法再次使用（因顧客誤按而變為「已使用」狀態的卷類也無法再次使用）。'
+                 ]
+             };
+
              // 計算優惠卷邏輯 (更新圖片對應 & ID 生成)
              function getCouponsForLevel(levelIdx) {
                  const coupons = [];
                  const imgMap = { '5%': 'coupon_5.png', '8%': 'coupon_8.png', '10%': 'coupon_10.png', 'americano': 'gift_americano.png', 'bogo': 'gift_bogo.png', 'gold': 'gift_gold.png' };
 
+                 // 加入 type 屬性以對應條款
                  if (levelIdx === 1) { // 銅賞
-                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'bronze_amer' });
-                    coupons.push({ name: '5% 回饋優惠卷', qty: 1, desc: '消費回饋', img: imgMap['5%'], baseId: 'bronze_5' });
-                    coupons.push({ name: '飲品買一送一卷', qty: 1, desc: '有福同享', img: imgMap['bogo'], baseId: 'bronze_bogo' });
+                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'bronze_amer', type: 'americano' });
+                    coupons.push({ name: '5% 回饋優惠卷', qty: 1, desc: '消費回饋', img: imgMap['5%'], baseId: 'bronze_5', type: 'rebate' });
+                    coupons.push({ name: '飲品買一送一卷', qty: 1, desc: '有福同享', img: imgMap['bogo'], baseId: 'bronze_bogo', type: 'bogo' });
                  }
                  else if (levelIdx === 2) { // 銀賞
-                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'silver_amer' });
-                    coupons.push({ name: '8% 回饋優惠卷', qty: 2, desc: '消費回饋', img: imgMap['8%'], baseId: 'silver_8' });
-                    coupons.push({ name: '飲品買一送一卷', qty: 2, desc: '有福同享', img: imgMap['bogo'], baseId: 'silver_bogo' });
+                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'silver_amer', type: 'americano' });
+                    coupons.push({ name: '8% 回饋優惠卷', qty: 2, desc: '消費回饋', img: imgMap['8%'], baseId: 'silver_8', type: 'rebate' });
+                    coupons.push({ name: '飲品買一送一卷', qty: 2, desc: '有福同享', img: imgMap['bogo'], baseId: 'silver_bogo', type: 'bogo' });
                  }
                  else if (levelIdx === 3) { // 金賞
-                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'gold_amer' });
-                    coupons.push({ name: '10% 回饋優惠卷', qty: 3, desc: '消費回饋', img: imgMap['10%'], baseId: 'gold_10' });
-                    coupons.push({ name: '飲品買一送一卷', qty: 3, desc: '有福同享', img: imgMap['bogo'], baseId: 'gold_bogo' });
-                    coupons.push({ name: '金賞好禮兌換卷', qty: 3, desc: '專屬好禮', img: imgMap['gold'], baseId: 'gold_gift' });
+                    coupons.push({ name: '美式咖啡兌換卷', qty: 1, desc: '晉升禮', img: imgMap['americano'], baseId: 'gold_amer', type: 'americano' });
+                    coupons.push({ name: '10% 回饋優惠卷', qty: 3, desc: '消費回饋', img: imgMap['10%'], baseId: 'gold_10', type: 'rebate' });
+                    coupons.push({ name: '飲品買一送一卷', qty: 3, desc: '有福同享', img: imgMap['bogo'], baseId: 'gold_bogo', type: 'bogo' });
+                    coupons.push({ name: '金賞好禮兌換卷', qty: 3, desc: '專屬好禮', img: imgMap['gold'], baseId: 'gold_gift', type: 'gold' });
                  }
                  return coupons;
              }
@@ -810,7 +770,7 @@
                  return count;
              }
 
-             // 定義開啟優惠卷 Modal 的函數
+             // 定義開啟優惠卷 Modal 的函數 (更新版：展開顯示 + 使用狀態)
              window.openCouponsModal = function() {
                  if(!currentCustomerPhone) return;
                  const coupons = getCouponsForLevel(currentLevelIndex);
@@ -847,7 +807,7 @@
                                     <span class="coupon-desc">${couponGroup.desc}</span>
                                 </div>
                                 <div class="coupon-action">
-                                    <button class="${btnClass}" ${disabledAttr} style="${styleAttr}" data-id="${uniqueId}" data-name="${couponGroup.name}" data-img="${couponGroup.img}">${btnText}</button>
+                                    <button class="${btnClass}" ${disabledAttr} style="${styleAttr}" data-id="${uniqueId}" data-name="${couponGroup.name}" data-img="${couponGroup.img}" data-type="${couponGroup.type}">${btnText}</button>
                                 </div>
                              `;
                              listContainer.appendChild(div);
@@ -864,10 +824,26 @@
                              const couponId = e.target.getAttribute('data-id');
                              const couponName = e.target.getAttribute('data-name');
                              const couponImg = e.target.getAttribute('data-img');
+                             const couponType = e.target.getAttribute('data-type');
                              
                              // 設置確認視窗內容
                              pendingCouponUseId = couponId;
                              document.getElementById('confirm-coupon-img').src = couponImg;
+                             
+                             // 產生動態條文
+                             const termsContainer = document.getElementById('confirm-coupon-terms');
+                             const terms = couponTerms[couponType] || [];
+                             let termsHtml = '<ul>';
+                             terms.forEach((term, index) => {
+                                 // 最後一項(紅字)特別處理
+                                 if (index === terms.length - 1) {
+                                     termsHtml += `<li style="color:#c0392b; font-weight:bold; font-size:1.15em;">${term}</li>`;
+                                 } else {
+                                     termsHtml += `<li>${term}</li>`;
+                                 }
+                             });
+                             termsHtml += '</ul>';
+                             termsContainer.innerHTML = termsHtml;
                              
                              // 關閉列表，打開確認
                              closeModal(myCouponsModal);
@@ -919,7 +895,14 @@
              }
 
              function updateMemberLevelUI(points) {
+                 // ** FIX: 重新抓取元素，避免 ReferenceError **
+                 const levelCard = document.getElementById('member-status-card');
                  if (!levelCard) return; 
+                 
+                 const levelTitle = document.getElementById('current-level-name');
+                 const nextLevelTitle = document.getElementById('next-level-name');
+                 const progressBar = document.getElementById('level-progress-bar');
+                 const progressTooltip = document.getElementById('level-tooltip');
 
                  const p = parseInt(points) || 0;
                  currentAnnualPoints = p;
@@ -951,7 +934,7 @@
                      pointsNeeded = 0; progressPercent = 100;
                  }
 
-                 // 3. 更新優惠卷數量顯示 (使用新邏輯：計算未使用)
+                 // 更新優惠卷數量顯示 (計算總張數)
                  const totalUnusedCoupons = getUnusedCouponCount(currentLevelIndex);
                  const couponCountEl = document.getElementById('modal-coupon-count');
                  if(couponCountEl) couponCountEl.textContent = totalUnusedCoupons;
