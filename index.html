@@ -1,7 +1,7 @@
 <!-- 
     CupiCho Membership Web App
-    Current Version: v25.04.39
-    Last Updated: 2025/01/07 (Update Coupon Terms: Americano no voucher deposit)
+    Current Version: v25.04.40
+    Last Updated: 2025/01/07 (Enhanced Admin Lookup: Show Member Name & Level)
 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
@@ -351,7 +351,7 @@
 
     <div id="root-container">
         <div id="login-page">
-            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.39</div></div>
+            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.40</div></div>
         </div>
         <div id="customer-home-page" class="hidden">
             <div class="customer-container">
@@ -395,7 +395,7 @@
                     <p class="info-main-data"><span id="voucher-balance">0</span><span class="small-text">杯</span></p>
                     <div class="action-buttons-group"><button class="btn btn-action" id="voucher-history-btn">寄杯查詢</button></div>
                 </div>
-                <div class="version-info">v25.04.39</div>
+                <div class="version-info">v25.04.40</div>
             </div>
         </div>
         
@@ -526,7 +526,12 @@
                 <div class="divider"></div>
                 <div class="lookup-section"><h3 class="section-title">會員資料查詢</h3><div class="lookup-form"><input type="tel" id="lookup-phone-input" class="form-input" placeholder="請輸入會員10碼電話號碼"><button id="lookup-button" class="btn btn-primary">查詢</button></div></div>
                 <div id="lookup-results" class="results-section hidden">
-                    <div class="divider"></div><h3 class="section-title">查詢結果</h3><p>會員：<span id="result-phone"></span></p>
+                    <div class="divider"></div>
+                    <h3 class="section-title">查詢結果</h3>
+                    <div style="text-align: left; margin-bottom: 15px; padding-left: 5px;">
+                        <div style="margin-bottom: 4px; font-size: 1.1em;">會員：<strong id="result-name-display"></strong></div>
+                        <div style="margin-bottom: 4px; font-size: 1.1em;">等級：<strong id="result-level-display" style="color: #8d6e63;"></strong></div>
+                    </div>
                     <div class="info-box">
                         <div class="info-column">
                             <h3 class="info-title">目前點數</h3>
@@ -589,7 +594,7 @@
             // =============================================================
             // 2. 變數與常數宣告 (Variables & Constants) - 放在最上面
             // =============================================================
-            const APP_VERSION = 'v25.04.39';
+            const APP_VERSION = 'v25.04.40';
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXK18jBS7tHbIKEd6lovkoi5BG3OM7wxWahw0fvgKSL_pP6OYa6c-4HsFlYdZoG5I/exec";
 
             const admins = {
@@ -1156,6 +1161,7 @@
              
              function closeQRScanner() { if (html5QrCodeScanner) { html5QrCodeScanner.stop().then(() => { document.getElementById('qr-reader-container').classList.add('hidden'); }); } else { document.getElementById('qr-reader-container').classList.add('hidden'); } }
 
+             // ★★★ FIX: Admin Lookup Logic ★★★
              function handleAdminLookup() {
                 const phone = document.getElementById('lookup-phone-input').value.trim();
                 if (!/^\d{10}$/.test(phone)) { alert('電話號碼格式錯誤'); return; }
@@ -1163,11 +1169,35 @@
                 fetch(`${SCRIPT_URL}?action=query&phone=${phone}`).then(r => r.json()).then(result => {
                     hideLoader();
                     if (result.status === 'success') {
-                        searchedPhone = result.data;
-                        document.getElementById('result-points').textContent = result.data.points;
-                        document.getElementById('result-vouchers').textContent = result.data.vouchers;
-                        document.getElementById('lookup-results').classList.remove('hidden');
-                    } else { searchedPhone = null; alert('查無此會員資料。'); }
+                        if (result.found) {
+                            searchedPhone = result.data;
+                            
+                            // 更新會員姓名與稱謂
+                            const nameDisplay = document.getElementById('result-name-display');
+                            if(nameDisplay) nameDisplay.textContent = `${result.data.lastName}${result.data.title}`;
+                            
+                            // 計算並更新會員等級
+                            const ap = parseInt(result.data.annualPoints) || 0;
+                            let levelName = '可可白賞';
+                            if (ap >= LEVEL_THRESHOLDS.LV3) levelName = '可可金賞';
+                            else if (ap >= LEVEL_THRESHOLDS.LV2) levelName = '可可銀賞';
+                            else if (ap >= LEVEL_THRESHOLDS.LV1) levelName = '可可銅賞';
+                            
+                            const levelDisplay = document.getElementById('result-level-display');
+                            if(levelDisplay) levelDisplay.textContent = levelName;
+                            
+                            document.getElementById('result-points').textContent = result.data.points;
+                            document.getElementById('result-vouchers').textContent = result.data.vouchers;
+                            document.getElementById('lookup-results').classList.remove('hidden');
+                        } else {
+                            searchedPhone = null;
+                            document.getElementById('lookup-results').classList.add('hidden');
+                            alert('查無此會員資料。'); // Show alert for non-members
+                        }
+                    } else { 
+                        searchedPhone = null; 
+                        alert('系統錯誤: ' + (result.message || '未知')); 
+                    }
                 }).catch(err => { hideLoader(); alert('連線錯誤'); });
              }
 
