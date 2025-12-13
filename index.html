@@ -1,7 +1,7 @@
 <!-- 
     CupiCho Membership Web App
-    Current Version: v25.04.51
-    Last Updated: 2025/01/07 (Add Year to Coupon ID for Annual Reset)
+    Current Version: v25.04.53
+    Last Updated: 2025/01/07 (Fix: Sync Homepage Progress Bar Colors with Detail Modal)
 -->
 <!DOCTYPE html>
 <html lang="zh-Hant">
@@ -334,7 +334,7 @@
         <linearGradient id="grad-bronze" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style="stop-color:#B87333; stop-opacity:1" />
           <stop offset="40%" style="stop-color:#E8A87C; stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#B8860B; stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#8B4513; stop-opacity:1" />
         </linearGradient>
         <linearGradient id="grad-silver" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" style="stop-color:#A9A9A9; stop-opacity:1" />
@@ -351,7 +351,7 @@
 
     <div id="root-container">
         <div id="login-page">
-            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.51</div></div>
+            <div class="login-container"><img src="https://i.ibb.co/tTZwQCCN/CUPC.jpg" alt="Cupicho Logo" class="logo"><h1 class="title-main">CupiCho DP會員專區</h1><h2 class="title-sub">全球精品巧克力專門店</h2><h3 class="title-store">DreamPlaza門市</h3><div class="input-group"><input type="tel" id="login-phone-input" class="form-input" placeholder="請輸入10碼電話號碼"></div><div class="button-group"><button class="btn btn-primary" id="login-button">會員登入</button><div class="divider"></div><button class="btn btn-secondary" id="register-button">會員註冊</button></div><div class="version-info">v25.04.53</div></div>
         </div>
         <div id="customer-home-page" class="hidden">
             <div class="customer-container">
@@ -395,7 +395,7 @@
                     <p class="info-main-data"><span id="voucher-balance">0</span><span class="small-text">杯</span></p>
                     <div class="action-buttons-group"><button class="btn btn-action" id="voucher-history-btn">寄杯查詢</button></div>
                 </div>
-                <div class="version-info">v25.04.51</div>
+                <div class="version-info">v25.04.53</div>
             </div>
         </div>
         
@@ -423,6 +423,12 @@
                         <div class="annual-value" id="modal-coupon-count">-</div> <!-- 改為預設值 -->
                         <div class="annual-unit">張</div>
                     </div>
+                </div>
+
+                <!-- 新增：權益說明文字 -->
+                <div class="member-notice-small" style="font-size: 0.75em; color: #888; text-align: left; margin: 10px 5px 15px 5px; line-height: 1.5;">
+                    <p>·若一次晉升兩階會員，會員優惠卷只保留最高等級之權益（例：原可可白賞會員，一次累積到20點點數直升到可可銀賞，則會直接享有銀賞之權益，無法享有可可銅賞權益）</p>
+                    <p>·當年度會員資格保留至當年度12月31日（例如2025/10/5晉升至可可金賞會員等級，則2026/1/1仍會回到可可白賞）</p>
                 </div>
 
                 <div class="divider"></div>
@@ -661,9 +667,8 @@
             // =============================================================
             // 2. 變數與常數宣告 (Variables & Constants) - 放在最上面
             // =============================================================
-            const APP_VERSION = 'v25.04.51';
-            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXK18jBS7tHbIKEd6lovkoi5BG3OM7wxWahw0fvgKSL_pP6OYa6c-4HsFlYdZoG5I/exec";
-
+            const APP_VERSION = 'v25.04.53';
+            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzXK18jBS7tHbIKEd6lovkoi5BG3OM7wxWahw0fvgKSL_pP6OYa6c-4HsFlYdZoG5I/exec“
             // ★★★ 新增：年度變數 (用於優惠卷 ID 每年重置) ★★★
             const currentYear = new Date().getFullYear();
 
@@ -682,6 +687,7 @@
                 { cost: 10, name: "精品禮盒", image: "item_10pt.png" }
             ];
 
+            // FIX: 使用 encodeURIComponent 解決中文編碼問題
             const svgContent = `<svg width="120" height="120" xmlns="http://www.w3.org/2000/svg">
                   <rect x="5" y="5" width="110" height="110" rx="15" ry="15" fill="none" stroke="#DAA520" stroke-width="3"/>
                   <text x="50%" y="42" dominant-baseline="middle" text-anchor="middle" font-size="36" fill="#DAA520" font-weight="bold" font-family="'Microsoft JhengHei', 'Heiti TC', sans-serif">專屬</text>
@@ -879,7 +885,13 @@
                  let nextClass = 'text-lv0'; if(levelClass === 'lv0-style') nextClass = 'text-lv1'; else if(levelClass === 'lv1-style') nextClass = 'text-lv2'; else if(levelClass === 'lv2-style') nextClass = 'text-lv3'; else nextClass = 'text-lv3';
                  document.getElementById('next-level-name').className = `next-level-text ${nextClass}`;
                  document.getElementById('level-progress-bar').style.width = `${progressPercent}%`;
-                 let fillColor = '#DCDCDC'; if (levelClass === 'lv1-style') fillColor = '#B76E79'; if (levelClass === 'lv2-style') fillColor = '#E5E4E2'; if (levelClass === 'lv3-style') fillColor = '#FFD700';
+                 
+                 // FIX: Unified Colors
+                 let fillColor = '#9E9E9E'; // White
+                 if (levelClass === 'lv1-style') fillColor = '#CD7F32'; // Bronze
+                 else if (levelClass === 'lv2-style') fillColor = '#7F7F7F'; // Silver
+                 else if (levelClass === 'lv3-style') fillColor = '#B8860B'; // Gold
+                 
                  document.getElementById('level-progress-bar').style.backgroundColor = fillColor;
                  document.getElementById('level-tooltip').textContent = pointsNeeded > 0 ? `差 ${pointsNeeded} 點晉升` : `已達最高等級`;
             }
@@ -889,7 +901,7 @@
                  if(!currentCustomerPhone) return;
                  const p = currentAnnualPoints;
                  let levelName = '可可白賞'; let progressPercent = 0; let nextInfoText = ''; let levelColor = '#4a2c2a';
-                 if (p < LEVEL_THRESHOLDS.LV1) { levelColor = '#9E9E9E'; progressPercent = (p / LEVEL_THRESHOLDS.LV1) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV1 - p} 點晉升 Lv.1`; } 
+                 if (p < LEVEL_THRESHOLDS.LV1) { levelColor = '#9E9E9E'; levelName = '可可白賞'; progressPercent = (p / LEVEL_THRESHOLDS.LV1) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV1 - p} 點晉升 Lv.1`; } 
                  else if (p < LEVEL_THRESHOLDS.LV2) { levelColor = '#CD7F32'; levelName = '可可銅賞'; progressPercent = ((p - LEVEL_THRESHOLDS.LV1) / (LEVEL_THRESHOLDS.LV2 - LEVEL_THRESHOLDS.LV1)) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV2 - p} 點晉升 Lv.2`; }
                  else if (p < LEVEL_THRESHOLDS.LV3) { levelColor = '#7F7F7F'; levelName = '可可銀賞'; progressPercent = ((p - LEVEL_THRESHOLDS.LV2) / (LEVEL_THRESHOLDS.LV3 - LEVEL_THRESHOLDS.LV2)) * 100; nextInfoText = `差 ${LEVEL_THRESHOLDS.LV3 - p} 點晉升 Lv.3`; }
                  else { levelColor = '#B8860B'; levelName = '可可金賞'; progressPercent = 100; nextInfoText = '已達最高等級'; }
@@ -943,7 +955,6 @@
 
                  coupons.forEach(couponGroup => {
                      for(let i=0; i<couponGroup.qty; i++) {
-                         // ★★★ FIX: 加入年份，確保 ID 與 getUnusedCouponCount 一致 ★★★
                          const uniqueId = `${couponGroup.baseId}_${currentYear}_${i}`;
                          renderCouponItem(uniqueId, couponGroup.name, couponGroup.desc, couponGroup.img, couponGroup.type, listContainer);
                      }
@@ -1469,7 +1480,7 @@
                 document.getElementById('lookup-button').addEventListener('click', handleAdminLookup);
                 document.getElementById('admin-add-voucher-btn').addEventListener('click', openAddVoucherModal);
                 document.getElementById('admin-redeem-voucher-btn').addEventListener('click', () => openModal(document.getElementById('admin-verify-code-modal')));
-                // 新增派發按鈕綁定
+                // 新增派發按鈕綁定 (含動態切換)
                 const sendCouponBtn = document.getElementById('admin-send-coupon-btn');
                 if(sendCouponBtn) sendCouponBtn.addEventListener('click', () => {
                     document.getElementById('send-coupon-phone').value = '';
